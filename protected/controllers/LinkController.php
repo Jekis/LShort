@@ -15,7 +15,13 @@ class LinkController extends Controller
         if (isset($_POST['Link'])) {
             $formModel->attributes = $_POST['Link'];
 
-            // Form validation.
+            // Ajax Form validation.
+            if (isset($_POST['ajax']) && $_POST['ajax'] === 'link-form') {
+                echo CActiveForm::validate($formModel);
+                Yii::app()->end();
+            }
+
+            // Regular form validation.
             if ($formModel->validate()) {
                 // Look for existing link
                 $createdModel = Link::model()->find('url=:url', array(':url' => $formModel->url));
@@ -32,13 +38,22 @@ class LinkController extends Controller
             }
         }
 
-        $this->render(
-            'shorten',
-            array(
-                'formModel'     => $formModel,
-                'createdModel'  => $createdModel,
-            )
-        );
+        if (Yii::app()->request->isAjaxRequest) {
+            $this->renderPartial(
+                '_shorten_url',
+                array('link' => $createdModel),
+                false,
+                true
+            );
+        } else {
+            $this->render(
+                'shorten',
+                array(
+                    'formModel'     => $formModel,
+                    'createdModel'  => $createdModel,
+                )
+            );
+        }
     }
 
     /**
@@ -74,19 +89,6 @@ class LinkController extends Controller
             } else {
                 $this->render('error', $error);
             }
-        }
-    }
-
-    /**
-     * Performs the AJAX validation.
-     *
-     * @param Link $model the model to be validated
-     */
-    protected function performAjaxValidation($model)
-    {
-        if (isset($_POST['ajax']) && $_POST['ajax'] === 'link-form') {
-            echo CActiveForm::validate($model);
-            Yii::app()->end();
         }
     }
 }
