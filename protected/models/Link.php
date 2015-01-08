@@ -85,4 +85,10 @@ class Link extends CActiveRecord
         parent::afterFind();
         $this->getShortCode();
     }
+
+    protected function afterSave()
+    {
+        parent::afterSave();
+        $this->getShortCode();
+    }
 }
